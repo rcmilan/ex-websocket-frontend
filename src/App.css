@@ -11,6 +11,7 @@ h6 {
 }
 
 hr.line {
+  margin: revert;
   border: 1px solid #313131;
   width: 175px;
 }
