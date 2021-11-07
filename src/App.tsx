@@ -8,25 +8,37 @@ import {
 } from "@microsoft/signalr";
 import LobbyComponent from "./components/LobbyComponent";
 import ChatComponent from "./components/ChatComponent";
-import { Message } from "./Types/message";
+import { Message } from "./types/message";
 
 function App() {
-  const [connection, setConnection] = useState<HubConnection>();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [connection, setConnection] = useState<HubConnection | null>();
+  const [messages, setMessages] = useState<Message[]>([]); // mensagens do chat
+  const [users, setUsers] = useState<string[]>([]);
 
   const joinRoom = async (user: string, room: string) => {
     try {
       // Cria a conexão
       const connection = new HubConnectionBuilder()
-        .withUrl("https://localhost:44340/chat") // definido no startup.cs
+        .withUrl("https://localhost:44340/chat") // definimos esse /chat no startup.cs
         .configureLogging(LogLevel.Information)
         .build();
 
-      // Define Haldlers
+      connection.on("UsersInRoom", (users) => {
+        setUsers(users);
+      });
+
+      // Define Haldler ao receber mensagem
       connection.on("ReceiveMessage", (user, message) => {
         setMessages((messages) => [...messages, { user, message }]);
 
         console.log("message received", message);
+      });
+
+      // Define Haldler ao fechar a conexão
+      connection.onclose((e) => {
+        setConnection(null);
+        setMessages([]);
+        setUsers([]);
       });
 
       await connection.start();
@@ -39,10 +51,18 @@ function App() {
     }
   };
 
+  const closeConnection = async () => {
+    try {
+      await connection?.stop();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const sendMessage = async (message: string) => {
     try {
       // chama o método do Hub
-      connection?.invoke("SendMessage", message);
+      message && connection?.invoke("SendMessage", message);
     } catch (error) {
       console.error(error);
     }
@@ -56,7 +76,12 @@ function App() {
       {!connection ? (
         <LobbyComponent joinRoom={joinRoom} />
       ) : (
-        <ChatComponent messages={messages} sendMessage={sendMessage} />
+        <ChatComponent
+          messages={messages}
+          sendMessage={sendMessage}
+          closeConnection={closeConnection}
+          users={users}
+        />
       )}
     </div>
   );

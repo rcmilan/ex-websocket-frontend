@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { InputGroup } from "react-bootstrap";
-import { Form, FormControl, Button } from "react-bootstrap";
+import { Form, FormControl, Button, InputGroup } from "react-bootstrap";
 
 interface Props {
   sendMessage: (message: string) => Promise<void>;
@@ -22,9 +21,9 @@ function SendMessageFormComponent({ sendMessage }: Props) {
           placeholder="message..."
           onChange={(e) => setMessage(e.target.value)}
           value={message}
-        ></FormControl>
+        />
         <Button variant="primary" type="submit">
-          Enviar
+          Send
         </Button>
       </InputGroup>
     </Form>

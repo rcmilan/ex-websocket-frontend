@@ -27,7 +27,12 @@ function LobbyComponent({ joinRoom }: Props) {
           onChange={(e) => setRoom(e.target.value)}
         />
       </Form.Group>
-      <Button variant="success" type="submit" disabled={!user || !room}>
+      <Button
+        className="full-width"
+        variant="success"
+        type="submit"
+        disabled={!user || !room}
+      >
         Join
       </Button>
     </Form>
