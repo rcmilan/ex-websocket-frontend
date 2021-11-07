@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Form, Button } from "react-bootstrap";
+import { UserRoom } from "../../types/userRoom";
 
 interface Props {
-  joinRoom: (user: string, room: string) => Promise<void>;
+  joinRoom: (userRoom: UserRoom) => Promise<void>;
 }
 
 function LobbyComponent({ joinRoom }: Props) {
@@ -14,7 +15,7 @@ function LobbyComponent({ joinRoom }: Props) {
       className="lobby"
       onSubmit={(e) => {
         e.preventDefault();
-        joinRoom(user, room);
+        joinRoom({ user, room });
       }}
     >
       <Form.Group>

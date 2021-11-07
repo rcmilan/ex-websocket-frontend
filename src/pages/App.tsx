@@ -6,35 +6,40 @@ import {
   HubConnectionBuilder,
   LogLevel,
 } from "@microsoft/signalr";
-import LobbyComponent from "./components/LobbyComponent";
-import ChatComponent from "./components/ChatComponent";
-import { Message } from "./types/message";
+import { Message } from "../types/message";
+import LobbyComponent from "../components/LobbyComponent";
+import ChatComponent from "../components/ChatComponent";
+import { UserRoom } from "../types/userRoom";
+
+const _chatHubEndpoint = `${process.env.REACT_APP_BACKEND}/${process.env.REACT_APP_WEBSOCKET_HUB_CHAT}`;
 
 function App() {
   const [connection, setConnection] = useState<HubConnection | null>();
   const [messages, setMessages] = useState<Message[]>([]); // mensagens do chat
-  const [users, setUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<string[]>([]); // usuários logados
 
-  const joinRoom = async (user: string, room: string) => {
+  // Entra na sala (Group)
+  const joinRoom = async (userRoom: UserRoom) => {
     try {
-      // Cria a conexão
+      // cria conexão
       const connection = new HubConnectionBuilder()
-        .withUrl("https://localhost:44340/chat") // definimos esse /chat no startup.cs
+        .withUrl(_chatHubEndpoint) // definimos esse hub no startup.cs
         .configureLogging(LogLevel.Information)
         .build();
 
+      // Handler para método iniciado pelo backend
       connection.on("UsersInRoom", (users) => {
         setUsers(users);
       });
 
-      // Define Haldler ao receber mensagem
+      // Handler para método iniciado pelo backend
       connection.on("ReceiveMessage", (user, message) => {
         setMessages((messages) => [...messages, { user, message }]);
 
         console.log("message received", message);
       });
 
-      // Define Haldler ao fechar a conexão
+      // Handler para método iniciado pelo backend
       connection.onclose((e) => {
         setConnection(null);
         setMessages([]);
@@ -42,8 +47,9 @@ function App() {
       });
 
       await connection.start();
+
       // chama o método do Hub
-      await connection.invoke("JoinRoom", { user, room });
+      await connection.invoke("JoinRoom", userRoom);
 
       setConnection(connection);
     } catch (error) {
@@ -70,9 +76,8 @@ function App() {
 
   return (
     <div className="app">
-      <h2 className="header">My Chat</h2>
-      <h2 className="line" />
-
+      <h2 className="header">WebSocket Chat Room</h2>
+      <hr className="line" />
       {!connection ? (
         <LobbyComponent joinRoom={joinRoom} />
       ) : (
